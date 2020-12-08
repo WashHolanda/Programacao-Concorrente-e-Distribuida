@@ -11,7 +11,7 @@ class RunTh implements Runnable {
 		this.MaxThreads = maxThreads;
 		this.Offset = offset;
 		this.grid = genAtual;
-		this.gridAux = new int[(tam/4)][tam];
+		this.gridAux = new int[(tam/this.MaxThreads)][tam];
 	}
 
 	// Retorna a quantidade de vizinhos vivos de cada celula na posicao ​i,j

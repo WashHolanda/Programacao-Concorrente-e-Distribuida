@@ -56,7 +56,7 @@ int getNeighbors(int i, int j) {
 void novaGeracao(){
     int i, j;
     
-    #pragma omp parallel private(j)
+    #pragma omp parallel private(j) num_threads(32)
     #pragma omp for
     for(i=0;i<TAM; i++){   
         for(j = 0; j<TAM; j++){
@@ -75,7 +75,7 @@ void novaGeracao(){
         }
     }
 
-    #pragma omp parallel private(j)
+    #pragma omp parallel private(j) num_threads(32)
     #pragma omp for
     for(i=0;i<TAM; i++){     
         for(j = 0; j<TAM; j++){
@@ -88,7 +88,7 @@ void novaGeracao(){
 int contaPopulacao(){
     int i,j,cont = 0;
     
-    #pragma omp parallel private(j) reduction(+:cont)
+    #pragma omp parallel private(j) reduction(+:cont) num_threads(32)
     #pragma omp for
         for(i=0;i<TAM; i++){
             for(j = 0; j<TAM; j++){

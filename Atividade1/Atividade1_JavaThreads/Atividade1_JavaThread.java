@@ -2,6 +2,7 @@ import java.util.Random;
 
 public class Atividade1_JavaThread {
     private int TAM;
+    public static int MaxThreads = 1;
     public static int grid[][];
     public static int newgrid[][];
 
@@ -51,7 +52,7 @@ public class Atividade1_JavaThread {
 
     // Copia o quarto do grid gerado para a proxima geração
     public void copyGen(int offset, int quarterGen[][]){
-        for(int i=0;i<(this.TAM/4); i++){     
+        for(int i=0;i<(this.TAM/MaxThreads); i++){     
             for(int j = 0; j<this.TAM; j++){
                 newgrid[(offset+i)][j] = quarterGen[i][j];
             }
@@ -73,7 +74,6 @@ public class Atividade1_JavaThread {
     }
 
     public static void main(String[] args) throws InterruptedException{
-        int MaxThreads = 4;
         int tam = 2048;
         Thread[] th;
         RunTh[] rh;
