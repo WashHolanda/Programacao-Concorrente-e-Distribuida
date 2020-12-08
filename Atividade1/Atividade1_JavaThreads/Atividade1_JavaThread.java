@@ -2,7 +2,7 @@ import java.util.Random;
 
 public class Atividade1_JavaThread {
     private int TAM;
-    public static int MaxThreads = 1;
+    public static int MaxThreads = 4;
     public static int grid[][];
     public static int newgrid[][];
 
@@ -75,6 +75,7 @@ public class Atividade1_JavaThread {
 
     public static void main(String[] args) throws InterruptedException{
         int tam = 2048;
+        int offset;
         Thread[] th;
         RunTh[] rh;
         rh = new RunTh[MaxThreads];
@@ -83,20 +84,19 @@ public class Atividade1_JavaThread {
         
         long startTime = System.currentTimeMillis();
         System.out.println("Condicao Inicial: " + gen1.contPopulation() + " Celulas Vivas");
-        //gen1.printGen();
-        //System.out.println("");
+
+        offset = tam/MaxThreads;
         for(int k=0;k<2000;k++){
             for(int i=0; i<MaxThreads; i++) {
-                rh[i] = new RunTh(tam, MaxThreads, (i*512), grid);
+                rh[i] = new RunTh(tam, MaxThreads, (i*offset), grid);
                 th[i] = new Thread(rh[i]);
                 th[i].start();
             }
             for(int i=0; i<MaxThreads; i++) {
                 th[i].join();
-                gen1.copyGen((i*512),rh[i].gridAux);
+                gen1.copyGen((i*offset),rh[i].gridAux);
             }
             gen1.newGen();
-            //gen1.printGen();
         }
         System.out.println("Ultima Geracao: " + gen1.contPopulation() + " Celulas Vivas");
         long calcTime = (System.currentTimeMillis() - startTime)/1000;
