@@ -5,7 +5,7 @@
 
 #define NUM_GEN 2000 // Numero de geracoes
 #define TAM 2048 // Tamanho N da matriz NxN
-#define MAX_THREADS 4
+#define MAX_THREADS 8 // Numero de Threads que serao feitas
 #define SRAND_VALUE 1985
 #define vivo 1
 #define morto 0
@@ -13,7 +13,7 @@
 int **grid, **newgrid;
 
 struct thread_data{
-   int  i;
+   int offset;
 }thread_data;
 
 typedef struct {
@@ -58,27 +58,28 @@ int getNeighbors(int i, int j) {
     return count;
 }
 
+// Funcao executada pelas Threads
 void *verificaCelula(void *th){
-    int i,j;
+    int i,j,offset;
     struct thread_data *arg;
-
     arg = (struct thread_data *) th;
-    i = arg->i;
-
-    for(j = 0; j<TAM; j++){
-        if (grid[i][j]){ // Se estiver vivo
-            if (getNeighbors(i,j) < 2 || getNeighbors(i,j) > 3) // Regra A e C
-                newgrid[i][j] = morto;
-            else // Regra B
-                newgrid[i][j] = vivo; 
+    offset = arg->offset;
+    for(i=0; i<TAM/MAX_THREADS; i++){
+        for(j = 0; j<TAM; j++){
+            if (grid[i+offset][j]){ // Se estiver vivo
+                if (getNeighbors(i+offset,j) < 2 || getNeighbors(i+offset,j) > 3) // Regra A e C
+                    newgrid[i+offset][j] = morto;
+                else // Regra B
+                    newgrid[i+offset][j] = vivo; 
+            }
+            else{ // Se estiver morto
+                if(getNeighbors(i+offset,j) == 3) // Regra D
+                    newgrid[i+offset][j] = vivo;
+                else
+                    newgrid[i+offset][j] = morto;
+            }
         }
-        else{ // Se estiver morto
-            if(getNeighbors(i,j) == 3) // Regra D
-                newgrid[i][j] = vivo;
-            else
-                newgrid[i][j] = morto;
-        }
-    }
+    }  
     pthread_exit(NULL);
 }
 
@@ -88,14 +89,13 @@ void novaGeracao(){
     pthread_t th[MAX_THREADS];
     struct thread_data param[MAX_THREADS];
     
-    for(i=0;i<TAM; i=i+MAX_THREADS){     
-        for (j=0;j<MAX_THREADS;j++){
-            param[j].i = i+j;
-            pthread_create(&th[j], NULL, verificaCelula, (void *)&param[j]);
-        }
-        for (j=0;j<MAX_THREADS;j++){
-            pthread_join(th[j],NULL);
-        }
+    for(i=0; i<MAX_THREADS; i++){   
+        param[i].offset = i*(TAM/MAX_THREADS);
+        pthread_create(&th[i], NULL, verificaCelula, (void *)&param[i]);
+    }
+
+    for (j=0;j<MAX_THREADS;j++){
+        pthread_join(th[j],NULL);
     }
 
     for(i=0;i<TAM; i++){     
