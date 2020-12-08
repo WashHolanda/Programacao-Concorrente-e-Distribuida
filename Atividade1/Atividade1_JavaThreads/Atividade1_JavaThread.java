@@ -1,12 +1,12 @@
 import java.util.Random;
 
-public class Atividade1_JavaSerial {
+public class Atividade1_JavaThread {
     private int TAM;
-    public int grid[][];
-    public int newgrid[][];
+    public static int grid[][];
+    public static int newgrid[][];
 
     // Construtor
-    public Atividade1_JavaSerial(int dim){
+    public Atividade1_JavaThread(int dim){
         this.TAM = dim;
         this.grid = new int[this.TAM][this.TAM];
         this.newgrid = new int[this.TAM][this.TAM];
@@ -25,65 +25,35 @@ public class Atividade1_JavaSerial {
             for(int j = 0; j<this.TAM; j++){
                 System.out.print(grid[i][j] + " ");
             }
-            System.out.print("      ");
-            for(int j = 0; j<this.TAM; j++){
-                System.out.print(newgrid[i][j] + " ");
-            }
             System.out.println("");
         }
-    }
-
-    // Retorna a quantidade de vizinhos vivos de cada celula na posicao ​i,j
-    public int getNeighbors(int i, int j) {
-        int count=0;
-
-        count += grid[i][((j+1)%this.TAM)]; // direita
-        count += grid[((i+1)%this.TAM)][((j+1)%this.TAM)]; // direita baixo
-        count += grid[((i+1)%this.TAM)][j]; //baixo
-        count += grid[((i+1)%this.TAM)][(this.TAM+(j-1))%this.TAM]; // esquerda baixo
-        
-        count += grid[i][(this.TAM+(j-1))%this.TAM]; // esquerda
-        count += grid[(this.TAM+(i-1))%this.TAM][(this.TAM+(j-1))%this.TAM]; //esquerda cima
-        count += grid[(this.TAM+(i-1))%this.TAM][j]; // cima
-        count += grid[(this.TAM+(i-1))%this.TAM][((j+1)%this.TAM)]; // direita cima
-
-        return count;
+        System.out.println("");
     }
 
     // Imprime matriz que indica numero de vizinhos de cada posicao
-    public void printMatNeighbors(){    
+    /*public void printMatNeighbors(){    
         for(int i=0;i<this.TAM; i++){     
             for(int j = 0; j<this.TAM; j++){
                 System.out.print(this.getNeighbors(i,j) + " ");
             }
             System.out.println("");
         }
-    }
+    }*/
 
-    // Cria uma nova geracao de acordo com as regras estabelecidas
+    // Define a nova geração como a geração atual
     public void newGen(){
         for(int i=0;i<this.TAM; i++){     
             for(int j = 0; j<this.TAM; j++){
-                if (grid[i][j] == 1){ // Se estiver vivo
-                    if (getNeighbors(i,j) < 2 || getNeighbors(i,j) > 3){ // Regra A e C
-                        //System.out.println(i + " " + j + " " + getNeighbors(i, j) + " " + grid[i][j]);
-                        this.newgrid[i][j] = 0;
-                    }
-                    else // Regra B
-                        this.newgrid[i][j] = 1; 
-                }
-                else{ // Se estiver morto
-                    if(getNeighbors(i,j) == 3) // Regra D
-                        this.newgrid[i][j] = 1;
-                    else
-                        this.newgrid[i][j] = 0;
-                }
+                grid[i][j] = newgrid[i][j];
             }
         }
+    }
 
-        for(int i=0;i<this.TAM; i++){     
+    // Copia o quarto do grid gerado para a proxima geração
+    public void copyGen(int offset, int quarterGen[][]){
+        for(int i=0;i<(this.TAM/4); i++){     
             for(int j = 0; j<this.TAM; j++){
-                grid[i][j] = newgrid[i][j];
+                newgrid[(offset+i)][j] = quarterGen[i][j];
             }
         }
     }
@@ -102,15 +72,33 @@ public class Atividade1_JavaSerial {
         return cont;
     }
 
-    public static void main(String[] args){
-        Atividade1_JavaSerial gen1 = new Atividade1_JavaSerial(2048);
+    public static void main(String[] args) throws InterruptedException{
+        int MaxThreads = 4;
+        int tam = 2048;
+        Thread[] th;
+        RunTh[] rh;
+        rh = new RunTh[MaxThreads];
+		th = new Thread[MaxThreads];
+        Atividade1_JavaThread gen1 = new Atividade1_JavaThread(tam);
         
         long startTime = System.currentTimeMillis();
-        System.out.println("Condição Inicial: " + gen1.contPopulation() + " Celulas Vivas");
-        for(int i=0;i<2000;i++){
+        System.out.println("Condicao Inicial: " + gen1.contPopulation() + " Celulas Vivas");
+        //gen1.printGen();
+        //System.out.println("");
+        for(int k=0;k<2000;k++){
+            for(int i=0; i<MaxThreads; i++) {
+                rh[i] = new RunTh(tam, MaxThreads, (i*512), grid);
+                th[i] = new Thread(rh[i]);
+                th[i].start();
+            }
+            for(int i=0; i<MaxThreads; i++) {
+                th[i].join();
+                gen1.copyGen((i*512),rh[i].gridAux);
+            }
             gen1.newGen();
+            //gen1.printGen();
         }
-        System.out.println("Geração 2000: " + gen1.contPopulation() + " Celulas Vivas");
+        System.out.println("Ultima Geracao: " + gen1.contPopulation() + " Celulas Vivas");
         long calcTime = (System.currentTimeMillis() - startTime)/1000;
         System.out.println(calcTime + "seg");
     }
