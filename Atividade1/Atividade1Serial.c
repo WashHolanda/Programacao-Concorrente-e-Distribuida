@@ -123,10 +123,10 @@ int contaPopulacao(){
 
 int main(){
     int i, j;
-    TIME_DIFF *time;
-    struct timeval start, end;
+    TIME_DIFF *time, *parcialTime;
+    struct timeval startTotal, endTotal, start, end;
 
-    gettimeofday (&start, NULL);
+    gettimeofday (&startTotal, NULL);
 
     // Alocacao das matrizes
     grid = malloc(sizeof(int*)*TAM);
@@ -146,16 +146,21 @@ int main(){
 
     printf("Condicao Inicial: %d Celulas Vivas\n", contaPopulacao());
 
+    gettimeofday (&start, NULL);
     // Gera NUM_GEN geracoes a partir da primeira
     for(i=0;i<NUM_GEN;i++){
         novaGeracao();
     }
+    gettimeofday (&end, NULL);
 
     printf("Ultima Geracao: %d Celulas Vivas\n", contaPopulacao());
 
-    gettimeofday (&end, NULL);
-    time = my_difftime(&start, &end);
-    printf("Tempo: %dseg\n",time->secs);
+    gettimeofday (&endTotal, NULL);
+
+    parcialTime = my_difftime(&start, &end);
+    printf("Tempo Looping Geracao: %dseg\n",parcialTime->secs);
+    time = my_difftime(&startTotal, &endTotal);
+    printf("Tempo Total: %dseg\n",time->secs);
 
     return 0;
 }

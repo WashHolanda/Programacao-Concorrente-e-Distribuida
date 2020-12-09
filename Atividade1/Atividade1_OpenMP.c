@@ -8,6 +8,7 @@
 #define SRAND_VALUE 1985
 #define vivo 1
 #define morto 0
+#define NUM_THREADS 4
 
 int **grid, **newgrid;
 
@@ -56,7 +57,7 @@ int getNeighbors(int i, int j) {
 void novaGeracao(){
     int i, j;
     
-    #pragma omp parallel private(j) num_threads(32)
+    #pragma omp parallel private(j) num_threads(NUM_THREADS)
     #pragma omp for
     for(i=0;i<TAM; i++){   
         for(j = 0; j<TAM; j++){
@@ -75,7 +76,7 @@ void novaGeracao(){
         }
     }
 
-    #pragma omp parallel private(j) num_threads(32)
+    #pragma omp parallel private(j) num_threads(NUM_THREADS)
     #pragma omp for
     for(i=0;i<TAM; i++){     
         for(j = 0; j<TAM; j++){
@@ -88,7 +89,7 @@ void novaGeracao(){
 int contaPopulacao(){
     int i,j,cont = 0;
     
-    #pragma omp parallel private(j) reduction(+:cont) num_threads(32)
+    #pragma omp parallel private(j) reduction(+:cont) num_threads(NUM_THREADS)
     #pragma omp for
         for(i=0;i<TAM; i++){
             for(j = 0; j<TAM; j++){
@@ -129,10 +130,10 @@ int contaPopulacao(){
 
 int main(){
     int i, j;
-    TIME_DIFF *time;
-    struct timeval start, end;
+    TIME_DIFF *time, *parcialTime;
+    struct timeval startTotal, endTotal, start, end;
 
-    gettimeofday (&start, NULL);
+    gettimeofday (&startTotal, NULL);
 
     // Alocacao das matrizes
     grid = malloc(sizeof(int*)*TAM);
@@ -152,16 +153,19 @@ int main(){
 
     printf("Condicao Inicial: %d Celulas Vivas\n", contaPopulacao());
 
+    gettimeofday (&start, NULL);
     // Gera NUM_GEN geracoes a partir da primeira
     for(i=0;i<NUM_GEN;i++){
         novaGeracao();
     }
-
+    gettimeofday (&end, NULL);
     printf("Ultima Geracao: %d Celulas Vivas\n", contaPopulacao());
 
-    gettimeofday (&end, NULL);
-    time = my_difftime(&start, &end);
-    printf("Tempo: %dseg\n",time->secs);
+    gettimeofday (&endTotal, NULL);
+    parcialTime = my_difftime(&start, &end);
+    printf("Tempo Looping Geracao: %d,%dseg\n",parcialTime->secs, (parcialTime->usecs/100));
+    time = my_difftime(&startTotal, &endTotal);
+    printf("Tempo: %d,%dseg\n",time->secs,(time->usecs/100));
 
     return 0;
 }

@@ -5,7 +5,7 @@
 
 #define NUM_GEN 2000 // Numero de geracoes
 #define TAM 2048 // Tamanho N da matriz NxN
-#define MAX_THREADS 8 // Numero de Threads que serao feitas
+#define MAX_THREADS 4 // Numero de Threads que serao feitas
 #define SRAND_VALUE 1985
 #define vivo 1
 #define morto 0
@@ -148,10 +148,10 @@ int contaPopulacao(){
 
 int main(){
     int i, j;
-    TIME_DIFF *time;
-    struct timeval start, end;
+    TIME_DIFF *time ,*parcialTime;
+    struct timeval start, startTotal, endTotal, end;
 
-    gettimeofday (&start, NULL);
+    gettimeofday (&startTotal, NULL);
 
     // Alocacao das matrizes
     grid = malloc(sizeof(int*)*TAM);
@@ -171,16 +171,19 @@ int main(){
 
     printf("Condicao Inicial: %d Celulas Vivas\n", contaPopulacao());
 
+    gettimeofday (&start, NULL);
     // Gera NUM_GEN geracoes a partir da primeira
     for(i=0;i<NUM_GEN;i++){
         novaGeracao();
     }
-
+    gettimeofday (&end, NULL);
     printf("Ultima Geracao: %d Celulas Vivas\n", contaPopulacao());
 
-    gettimeofday (&end, NULL);
-    time = my_difftime(&start, &end);
-    printf("Tempo: %dseg\n",time->secs);
+    gettimeofday (&endTotal, NULL);
+    parcialTime = my_difftime(&start, &end);
+    printf("Tempo Looping Geracao: %d,%dseg\n",parcialTime->secs, (parcialTime->usecs/100));
+    time = my_difftime(&startTotal, &endTotal);
+    printf("Tempo: %d,%dseg\n",time->secs,(time->usecs/100));
 
     return 0;
 }
